@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ConsultaCepService } from '../shared/services/consulta-cep.service';
 
 @Component({
   selector: 'app-template-form',
@@ -15,14 +16,18 @@ export class TemplateFormComponent {
   }
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private consultaCepService: ConsultaCepService
   ) {}
 
-  onSubmit(form: NgForm) {
-    console.log(form);
+  onSubmit(formulario: NgForm) {
+    console.log(formulario);
 
-    this.http.post('https://httpbin.org/post', JSON.stringify(form.value))
-      .subscribe(dados => console.log(dados));
+    this.http.post('https://httpbin.org/post', JSON.stringify(formulario.value))
+      .subscribe(dados => {
+        console.log(dados);
+        formulario.form.reset();
+      });
   }
 
   verificaValidTouched(campo: any) {
@@ -41,20 +46,12 @@ export class TemplateFormComponent {
     cep = cep.replace(/\D/g, '');
 
     // Verifica se campo cep possui valor informado.
-    if (cep !== '') {
-      // Expressão regular para validar o CEP.
-      var validacep = /^[0-9]{8}$/;
-
-      // Valida o formato do CEP.
-      if (validacep.test(cep)) {
-
-        this.resetaDadosForm(form);
-
-        this.http.get(`//viacep.com.br/ws/${cep}/json`)
+    if (cep !== '' && cep !== '') {
+        this.consultaCepService.consultaCEP(cep)
           .subscribe(dados => this.populaDadosForm(dados, form));
-      }
-    }
+     }
   }
+
 
   populaDadosForm(dados: any, formulario: any) {
     formulario.form.patchValue({
